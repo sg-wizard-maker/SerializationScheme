@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme\\SerializationScheme.csproj": {}
+    "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme.csproj": {}
   },
   "projects": {
-    "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme\\SerializationScheme.csproj": {
+    "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme\\SerializationScheme.csproj",
+        "projectUniqueName": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme.csproj",
         "projectName": "SerializationScheme",
-        "projectPath": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme\\SerializationScheme.csproj",
+        "projectPath": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme.csproj",
         "packagesPath": "C:\\Users\\samgl\\.nuget\\packages\\",
-        "outputPath": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme\\obj\\",
+        "outputPath": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\samgl\\AppData\\Roaming\\NuGet\\NuGet.Config",

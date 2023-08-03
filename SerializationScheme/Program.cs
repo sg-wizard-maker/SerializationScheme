@@ -8,11 +8,6 @@ namespace SerializationScheme
         {
             Console.WriteLine("Hello, World!");
 
-            #region Reflection experiments
-            //var listInt = new List<int>() { 1, 2, 3 };
-            //CustomSerializer.ReflectionUponListType(listInt);
-            #endregion
-
             #region Simple Archetypeal/Instance entities
             var arch1 = new SimpleArchetypalDataEntity(1, "sval_A", "a_First",  null);
             var arch2 = new SimpleArchetypalDataEntity(2, "sval_B", "a_Second", null);
@@ -22,12 +17,8 @@ namespace SerializationScheme
             var instance3 = new SimpleInstanceDataEntity(arch2, 33, "ghi", "i_Third",  null);
 
             // We now have some simple Archetypal/Instance data set up, so let's serialize:
-            //arch1.TestSerializationViaJsonSerializer();      // Hmmm...the automatic approach does not suit our needs...
-            //arch1.DoSerializationViaHandCoded();
-            //instance1.TestSerializationViaJsonSerializer();  // Hmmm...the automatic approach does not suit our needs...
-
-            //CustomSerializer.SerializeJustThisObject(arch1);
-            //CustomSerializer.SerializeJustThisObject(instance1);
+            CustomSerializer.SerializeJustThisObject(arch1);
+            CustomSerializer.SerializeJustThisObject(instance1);
             #endregion
 
 
@@ -64,7 +55,6 @@ namespace SerializationScheme
             firstComplex.DictionaryOfStrings.Add("c", "carrot");
 
             // We now have a complex/composite structure set up, so let's serialize:
-            //firstComplex.TestSerializationViaJsonSerializer();
             CustomSerializer.SerializeJustThisObject(firstComplex);
             #endregion
         }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lIeBv1uyril3oT85afRFq6KarENz6bNWdBFYWch96Wvjxu0KCFgUnc+t2r5caZYviYASkIhqrpMfGc80UQ4ruA==",
+  "dgSpecHash": "saVlN0/AhOV4i3plVA5xZ15vjtwvBYJGj9lXpNn8f6B4tNhTmkRp5OVSYIvzuPoB7l2fUCSHxQ/Tu7nMCQKsYw==",
   "success": true,
-  "projectFilePath": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme\\SerializationScheme.csproj",
+  "projectFilePath": "C:\\P\\2023.07.28.SerializationScheme\\SerializationScheme\\SerializationScheme.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\samgl\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
     "C:\\Users\\samgl\\.nuget\\packages\\microsoft.netcore.targets\\1.1.0\\microsoft.netcore.targets.1.1.0.nupkg.sha512",

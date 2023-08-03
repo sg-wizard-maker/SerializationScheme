@@ -52,15 +52,12 @@ namespace SerializationScheme
                 if (typeOfPropertyValue.IsGenericType && typeOfPropertyValue.GetGenericTypeDefinition() == typeof(List<>))
                 {
                     CustomSerializer.EmitJsonForList(writer, property, value);
-                    //CustomSerializer.EmitJsonForListViaHardCodedManualApproach(writer, value);
                     continue;
                 }
                 // Case 3: Value is some kind of Dictionary<SomeKeyType,T>
                 if (typeOfPropertyValue.IsGenericType && typeOfPropertyValue.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 {
                     CustomSerializer.EmitJsonForDictionary(writer, property, value);
-                    //CustomSerializer.EmitJsonForDictionaryViaHardCodedManualApproach(writer, value);
-                    //CustomSerializer.EmitJsonForDictionaryViaReflection(writer, value);
                     continue;
                 }
 
@@ -264,73 +261,6 @@ namespace SerializationScheme
             }
             writer.WriteEndObject();
         }
-
-        public static void EmitJsonForDictionaryViaReflection(JsonTextWriter writer, object obj)
-        {
-            Type type                  = obj.GetType();
-            var  genericTypeDefinition = type.GetGenericTypeDefinition();
-            var  genericTypeArgs       = type.GetGenericArguments();
-            Type dictKeyType           = genericTypeArgs[0];
-            Type dictValueType         = genericTypeArgs[1];
-
-            // ...TBD
-        }
-
-        public static void ReflectionUponListType(object obj)
-        {
-            // Experimenting upon how to use Reflection to look inside of a List<T> when you have an 'object' in hand...
-            Type objType = obj.GetType();
-
-            if (objType.IsGenericType && objType.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                var  typeDefinition  = objType.GetGenericTypeDefinition();
-                var  genericTypeArgs = objType.GetGenericArguments();
-                Type itemType        = genericTypeArgs[0];
-
-                // Given (obj, objType, typeDefinition, itemType),
-                // and knowing that this method was called with 'obj' being a List<int>,
-                // we would like to get a hold of 'obj' in terms of List<int>, rather than 'object',
-                // so as to be able to access the enumerator, and use foreach()
-
-
-
-                //foreach (var xx in XXXXX)
-                //{
-                //}
-
-            }
-            else
-            {
-                // ...
-            }
-        }
-
-        //public static Type GetAnyElementType(Type type)
-        //{
-        //    // Type is Array
-        //    // short-circuit if you expect lots of arrays 
-        //    if (type.IsArray)
-        //    {
-        //        var arrayResult = type.GetElementType();
-        //        return arrayResult;
-        //    }
-        //
-        //    // Type is IEnumerable<T>;
-        //    if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-        //    {
-        //        var iEnumerableResult = type.GetGenericArguments()[0];
-        //        return iEnumerableResult;
-        //    }
-        //
-        //    // Type implements/extends IEnumerable<T>;
-        //    var enumType = type
-        //        .GetInterfaces()
-        //        .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-        //        .Select(t => t.GenericTypeArguments[0]).FirstOrDefault();
-        //
-        //    var result = enumType ?? type;
-        //    return result;
-        //}
     }
 
     public class ObjRegistrar<T> where T: IObjForRegistrar
