@@ -51,14 +51,15 @@ namespace SerializationScheme
                 // Case 2: Value is some kind of List<T>
                 if (typeOfPropertyValue.IsGenericType && typeOfPropertyValue.GetGenericTypeDefinition() == typeof(List<>))
                 {
-                    CustomSerializer.EmitJsonForListViaHardCodedManualApproach(writer, value);
-                    //CustomSerializer.EmitJsonForListViaReflection(writer, value);
+                    CustomSerializer.EmitJsonForList(writer, property, value);
+                    //CustomSerializer.EmitJsonForListViaHardCodedManualApproach(writer, value);
                     continue;
                 }
                 // Case 3: Value is some kind of Dictionary<SomeKeyType,T>
                 if (typeOfPropertyValue.IsGenericType && typeOfPropertyValue.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 {
-                    CustomSerializer.EmitJsonForDictionaryViaHardCodedManualApproach(writer, value);
+                    CustomSerializer.EmitJsonForDictionary(writer, property, value);
+                    //CustomSerializer.EmitJsonForDictionaryViaHardCodedManualApproach(writer, value);
                     //CustomSerializer.EmitJsonForDictionaryViaReflection(writer, value);
                     continue;
                 }
@@ -147,28 +148,28 @@ namespace SerializationScheme
             writer.WriteEndArray();
         }
 
-        public static void EmitJsonForListViaReflection(JsonTextWriter writer, object obj)
+        public static void EmitJsonForList(JsonTextWriter writer, PropertyInfo property, object obj)
         {
-            Type type = obj.GetType();
-
-            var  genericTypeDefinition = type.GetGenericTypeDefinition();
-            var  genericTypeArgs       = type.GetGenericArguments();
-            Type itemType              = genericTypeArgs[0];
-
-            // Nothing successful thus far, but should be possible via Reflection with the right incantations...
-
-            //var getEnumeratorMethod = typeDefinition.GetMethod("GetEnumerator");
-
-            // A
-            //var methodInfo = getEnumeratorMethod?.MakeGenericMethod(itemType);
-            //var xxx = methodInfo?.Invoke(property, null);
-
-            // B
-            //var xxx = getEnumeratorMethod?.Invoke(value, null);
-
-            // (Other)
-            //var resultofGetEnumerator = typeDefinition.InvokeMember("GetEnumerator", BindingFlags.Instance | BindingFlags.InvokeMethod, null, property, null);
-
+            // We can definitely cast to IEnumerable, since our caller checked that this is some type of List<>
+            // But just in case...
+            if (!property.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a List<>");
+            }
+            writer.WriteStartArray();
+            foreach (var item in (IEnumerable)obj)
+            {
+                IObjForRegistrar? regObj = item as IObjForRegistrar;
+                if (regObj == null)
+                {
+                    writer.WriteValue(item);
+                }
+                else
+                {
+                    writer.WriteValue(regObj.Tag);
+                }
+            }
+            writer.WriteEndArray();
         }
 
         public static void EmitJsonForDictionaryViaHardCodedManualApproach(JsonTextWriter writer, object obj)
@@ -229,6 +230,37 @@ namespace SerializationScheme
                 Type dictValueType   = genericTypeArgs[1];
 
                 writer.WriteComment("TODO: Un-handled dictionary type: Dictionary<" + dictKeyType.Name + "," + dictValueType.Name + ">");
+            }
+            writer.WriteEndObject();
+        }
+
+        public static void EmitJsonForDictionary(JsonTextWriter writer, PropertyInfo property, object obj)
+        {
+            // We can definitely cast to IEnumerable, since our caller checked that this is some type of Dictionary<>
+            // But just in case...
+            if (!property.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a Dictionary<>");
+            }
+            writer.WriteStartObject();
+            var dictionary = (IDictionary)obj;
+            foreach (var key in dictionary.Keys)
+            {
+                string? stringKey = key as string;
+                if (stringKey == null) { throw new ArgumentException("EmitJsonForDictionary() got non-string key"); }
+
+                var value = dictionary[key];
+                IObjForRegistrar? regObj = value as IObjForRegistrar;
+                if (regObj == null)
+                {
+                    writer.WritePropertyName(stringKey);
+                    writer.WriteValue(value);
+                }
+                else
+                {
+                    writer.WritePropertyName(stringKey);
+                    writer.WriteValue(regObj.Tag);
+                }
             }
             writer.WriteEndObject();
         }

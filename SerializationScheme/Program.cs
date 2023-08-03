@@ -9,8 +9,8 @@ namespace SerializationScheme
             Console.WriteLine("Hello, World!");
 
             #region Reflection experiments
-            var listInt = new List<int>() { 1, 2, 3 };
-            CustomSerializer.ReflectionUponListType(listInt);
+            //var listInt = new List<int>() { 1, 2, 3 };
+            //CustomSerializer.ReflectionUponListType(listInt);
             #endregion
 
             #region Simple Archetypeal/Instance entities
