@@ -67,6 +67,12 @@ namespace SerializationScheme
                 {
                     // Usually one of the fundamental types;
                     // encountering SomeRandomClass would cause a JsonWriterException here
+                    // TODO:
+                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
+                    // to avoid such an Exception.
+                    // TODO:
+                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
+                    // which we would want to recurse into (and thus serialize "in-line")...
                     writer.WriteValue(value);
                     continue;
                 }
@@ -159,6 +165,14 @@ namespace SerializationScheme
                 IObjForRegistrar? regObj = item as IObjForRegistrar;
                 if (regObj == null)
                 {
+                    // Usually one of the fundamental types;
+                    // encountering SomeRandomClass would cause a JsonWriterException here
+                    // TODO:
+                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
+                    // to avoid such an Exception.
+                    // TODO:
+                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
+                    // which we would want to recurse into (and thus serialize "in-line")...
                     writer.WriteValue(item);
                 }
                 else
@@ -250,6 +264,14 @@ namespace SerializationScheme
                 IObjForRegistrar? regObj = value as IObjForRegistrar;
                 if (regObj == null)
                 {
+                    // Usually one of the fundamental types;
+                    // encountering SomeRandomClass would cause a JsonWriterException here
+                    // TODO:
+                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
+                    // to avoid such an Exception.
+                    // TODO:
+                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
+                    // which we would want to recurse into (and thus serialize "in-line")...
                     writer.WritePropertyName(stringKey);
                     writer.WriteValue(value);
                 }
