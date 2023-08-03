@@ -66,13 +66,15 @@ namespace SerializationScheme
                 if (registeredObj == null)
                 {
                     // Usually one of the fundamental types;
-                    // encountering SomeRandomClass would cause a JsonWriterException here
+                    // encountering SomeRandomClass would cause a JsonWriterException here -- whoops, ConvertUtils is 'internal'
                     // TODO:
                     // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
                     // to avoid such an Exception.
                     // TODO:
                     // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
                     // which we would want to recurse into (and thus serialize "in-line")...
+                    // Perhaps a protocol (ISerializeThisObjectInline or somesuch)
+                    // which such objects could implement, indicating that we serialize them in some way?
                     writer.WriteValue(value); // possible JsonWriterException if SomeRandomClass...
                     continue;
                 }
@@ -94,6 +96,78 @@ namespace SerializationScheme
             string str = sw.ToString();
         }
 
+        public static void EmitJsonForList(JsonTextWriter writer, PropertyInfo property, object obj)
+        {
+            // We can definitely cast to IEnumerable, since our caller checked that this is some type of List<>
+            // But just in case...
+            if (!property.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
+            {
+                throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a List<>");
+            }
+            writer.WriteStartArray();
+            foreach (var item in (IEnumerable)obj)
+            {
+                IObjForRegistrar? regObj = item as IObjForRegistrar;
+                if (regObj == null)
+                {
+                    // Usually one of the fundamental types;
+                    // encountering SomeRandomClass would cause a JsonWriterException here -- whoops, ConvertUtils is 'internal'
+                    // TODO:
+                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
+                    // to avoid such an Exception.
+                    // TODO:
+                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
+                    // which we would want to recurse into (and thus serialize "in-line")...
+                    writer.WriteValue(item); // possible JsonWriterException if SomeRandomClass...
+                }
+                else
+                {
+                    writer.WriteValue(regObj.Tag);
+                }
+            }
+            writer.WriteEndArray();
+        }
+
+        public static void EmitJsonForDictionary(JsonTextWriter writer, PropertyInfo property, object obj)
+        {
+            // We can definitely cast to IDictionary, since our caller checked that this is some type of Dictionary<>
+            // But just in case...
+            if (!property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
+            {
+                throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a Dictionary<>");
+            }
+            writer.WriteStartObject();
+            var dictionary = (IDictionary)obj;
+            foreach (var key in dictionary.Keys)
+            {
+                string? stringKey = key as string;
+                if (stringKey == null) { throw new ArgumentException("EmitJsonForDictionary() got non-string key"); }
+
+                var value = dictionary[key];
+                IObjForRegistrar? regObj = value as IObjForRegistrar;
+                if (regObj == null)
+                {
+                    // Usually one of the fundamental types;
+                    // encountering SomeRandomClass would cause a JsonWriterException here
+                    // TODO:
+                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() -- whoops, ConvertUtils is 'internal'
+                    // to avoid such an Exception.
+                    // TODO:
+                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
+                    // which we would want to recurse into (and thus serialize "in-line")...
+                    writer.WritePropertyName(stringKey);
+                    writer.WriteValue(value); // possible JsonWriterException if SomeRandomClass...
+                }
+                else
+                {
+                    writer.WritePropertyName(stringKey);
+                    writer.WriteValue(regObj.Tag);
+                }
+            }
+            writer.WriteEndObject();
+        }
+
+        #region Previous serialization experiments
         public static void EmitJsonForListViaHardCodedManualApproach(JsonTextWriter writer, object obj)
         {
             // We are given obj, and our caller determined that obj is some manner of List<T>
@@ -147,38 +221,6 @@ namespace SerializationScheme
                 Type itemType        = genericTypeArgs[0];
 
                 writer.WriteComment("TODO: Un-handled list type: List<" + itemType.Name + ">");
-            }
-            writer.WriteEndArray();
-        }
-
-        public static void EmitJsonForList(JsonTextWriter writer, PropertyInfo property, object obj)
-        {
-            // We can definitely cast to IEnumerable, since our caller checked that this is some type of List<>
-            // But just in case...
-            if (!property.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
-            {
-                throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a List<>");
-            }
-            writer.WriteStartArray();
-            foreach (var item in (IEnumerable)obj)
-            {
-                IObjForRegistrar? regObj = item as IObjForRegistrar;
-                if (regObj == null)
-                {
-                    // Usually one of the fundamental types;
-                    // encountering SomeRandomClass would cause a JsonWriterException here
-                    // TODO:
-                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
-                    // to avoid such an Exception.
-                    // TODO:
-                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
-                    // which we would want to recurse into (and thus serialize "in-line")...
-                    writer.WriteValue(item); // possible JsonWriterException if SomeRandomClass...
-                }
-                else
-                {
-                    writer.WriteValue(regObj.Tag);
-                }
             }
             writer.WriteEndArray();
         }
@@ -244,45 +286,7 @@ namespace SerializationScheme
             }
             writer.WriteEndObject();
         }
-
-        public static void EmitJsonForDictionary(JsonTextWriter writer, PropertyInfo property, object obj)
-        {
-            // We can definitely cast to IDictionary, since our caller checked that this is some type of Dictionary<>
-            // But just in case...
-            if (!property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
-            {
-                throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a Dictionary<>");
-            }
-            writer.WriteStartObject();
-            var dictionary = (IDictionary)obj;
-            foreach (var key in dictionary.Keys)
-            {
-                string? stringKey = key as string;
-                if (stringKey == null) { throw new ArgumentException("EmitJsonForDictionary() got non-string key"); }
-
-                var value = dictionary[key];
-                IObjForRegistrar? regObj = value as IObjForRegistrar;
-                if (regObj == null)
-                {
-                    // Usually one of the fundamental types;
-                    // encountering SomeRandomClass would cause a JsonWriterException here
-                    // TODO:
-                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() -- whoops, ConvertUtils is 'internal'
-                    // to avoid such an Exception.
-                    // TODO:
-                    // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
-                    // which we would want to recurse into (and thus serialize "in-line")...
-                    writer.WritePropertyName(stringKey);
-                    writer.WriteValue(value); // possible JsonWriterException if SomeRandomClass...
-                }
-                else
-                {
-                    writer.WritePropertyName(stringKey);
-                    writer.WriteValue(regObj.Tag);
-                }
-            }
-            writer.WriteEndObject();
-        }
+        #endregion
     }
 
     public class ObjRegistrar<T> where T: IObjForRegistrar

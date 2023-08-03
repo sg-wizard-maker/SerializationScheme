@@ -12,6 +12,19 @@ namespace SerializationScheme
 {
     public class SimpleArchetypalDataEntity : IObjForRegistrar
     {
+        const string ExampleJsonCompact = """
+            {"Id":"c5d2f9bc-7822-4dc8-81ab-330b4b6c3584","Tag":"a_First","IntValue":1,"StringValue":"sval_A"}
+            """;
+
+        const string ExampleJsonMultiLineIndented = """
+            {
+            	"Id":          "c5d2f9bc-7822-4dc8-81ab-330b4b6c3584",
+            	"Tag":         "a_First",
+            	"IntValue":    1,
+            	"StringValue": "sval_A"
+            }
+            """;
+
         #region Members for IObjForRegistrar
         public Guid   Id  { get; set; }
         public string Tag { get; set; }
@@ -42,11 +55,12 @@ namespace SerializationScheme
         }
         #endregion
 
+        #region Previous serialization experiments
         public void TestSerializationViaJsonSerializer()
         {
             var serializer = new JsonSerializer();
-            var sb = new StringBuilder();
-            var writer = new StringWriter(sb);
+            var sb         = new StringBuilder();
+            var writer     = new StringWriter(sb);
 
             serializer.Serialize(writer, this);
             writer.Flush();
@@ -85,5 +99,6 @@ namespace SerializationScheme
 
             string str = sw.ToString();
         }
+        #endregion
     }
 }

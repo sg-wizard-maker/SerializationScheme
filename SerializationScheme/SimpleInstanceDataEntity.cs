@@ -11,8 +11,20 @@ namespace SerializationScheme
 {
     public class SimpleInstanceDataEntity : IObjForRegistrar
     {
-        //static bool SerializeRefAsGuid = false;
-        //static bool SerializeRefAsTag  = true;
+        const string ExampleJsonCompact = """
+            {"Id":"aedfc9f8-69b5-468f-afe0-f3844a53949e","Tag":"i_First","Archetype":"a_First","ArchetypeTwo":"a_First","InstanceIntValue":11,"InstanceStringValue":"abc"}
+            """;
+
+        const string ExampleJsonMultiLineIndented = """
+            {
+            	"Id":                  "aedfc9f8-69b5-468f-afe0-f3844a53949e",
+            	"Tag":                 "i_First",
+            	"Archetype":           "a_First",
+            	"ArchetypeTwo":        "a_First",
+            	"InstanceIntValue":    11,
+            	"InstanceStringValue": "abc"
+            }
+            """;
 
         #region Members for IObjForRegistrar
         public Guid   Id  { get; set; }
@@ -41,6 +53,7 @@ namespace SerializationScheme
             this.InstanceStringValue = sval;
         }
 
+        #region Previous serialization experiments
         public void TestSerializationViaJsonSerializer()
         {
             var serializer = new JsonSerializer();
@@ -58,5 +71,6 @@ namespace SerializationScheme
 
             string ss = sb.ToString();
         }
+        #endregion
     }
 }
