@@ -73,7 +73,7 @@ namespace SerializationScheme
                     // TODO:
                     // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
                     // which we would want to recurse into (and thus serialize "in-line")...
-                    writer.WriteValue(value);
+                    writer.WriteValue(value); // possible JsonWriterException if SomeRandomClass...
                     continue;
                 }
                 // Case 5: Value is some type implementing IObjForRegistrar, serialize the reference as a Tag
@@ -173,7 +173,7 @@ namespace SerializationScheme
                     // TODO:
                     // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
                     // which we would want to recurse into (and thus serialize "in-line")...
-                    writer.WriteValue(item);
+                    writer.WriteValue(item); // possible JsonWriterException if SomeRandomClass...
                 }
                 else
                 {
