@@ -73,7 +73,7 @@ namespace SerializationScheme
             this.InstanceA  = instance;
         }
 
-        #region Methods to add comtent
+        #region Methods to add content
         public void AddRangeArchetypeToList(params SimpleArchetypalDataEntity[] archetypes)
         {
             this.ListArchetypesB.AddRange(archetypes);
