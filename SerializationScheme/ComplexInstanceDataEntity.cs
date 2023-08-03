@@ -81,8 +81,8 @@ namespace SerializationScheme
         public void TestSerializationViaJsonSerializer()
         {
             var serializer = new JsonSerializer();
-            var sb = new StringBuilder();
-            var writer = new StringWriter(sb);
+            var sb         = new StringBuilder();
+            var writer     = new StringWriter(sb);
 
             serializer.Serialize(writer, this);
             writer.Flush();

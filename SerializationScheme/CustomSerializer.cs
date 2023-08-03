@@ -247,9 +247,9 @@ namespace SerializationScheme
 
         public static void EmitJsonForDictionary(JsonTextWriter writer, PropertyInfo property, object obj)
         {
-            // We can definitely cast to IEnumerable, since our caller checked that this is some type of Dictionary<>
+            // We can definitely cast to IDictionary, since our caller checked that this is some type of Dictionary<>
             // But just in case...
-            if (!property.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
+            if (!property.PropertyType.GetInterfaces().Contains(typeof(IDictionary)))
             {
                 throw new Exception("Impossible? EmitJsonForList() somehow got obj that is not a Dictionary<>");
             }
@@ -267,13 +267,13 @@ namespace SerializationScheme
                     // Usually one of the fundamental types;
                     // encountering SomeRandomClass would cause a JsonWriterException here
                     // TODO:
-                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() 
+                    // Test with Newtonsoft.Json.Utilities.ConvertUtils.GetTypeCode() -- whoops, ConvertUtils is 'internal'
                     // to avoid such an Exception.
                     // TODO:
                     // There might be some kind of non-List, non-Dictionary, non-IObjForRegister
                     // which we would want to recurse into (and thus serialize "in-line")...
                     writer.WritePropertyName(stringKey);
-                    writer.WriteValue(value);
+                    writer.WriteValue(value); // possible JsonWriterException if SomeRandomClass...
                 }
                 else
                 {
