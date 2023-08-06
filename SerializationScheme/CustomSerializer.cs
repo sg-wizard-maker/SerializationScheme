@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
@@ -17,6 +18,7 @@ namespace SerializationScheme
 {
     public class CustomSerializer
     {
+        #region Serialization and helper methods
         public static string SerializeJustThisObject(object obj)
         {
             var sw = new StringWriter();
@@ -97,7 +99,7 @@ namespace SerializationScheme
             return str;
         }
 
-        public static void EmitJsonForList(JsonTextWriter writer, PropertyInfo property, object obj)
+        private static void EmitJsonForList(JsonTextWriter writer, PropertyInfo property, object obj)
         {
             // We can definitely cast to IEnumerable, since our caller checked that this is some type of List<>
             // But just in case...
@@ -129,7 +131,7 @@ namespace SerializationScheme
             writer.WriteEndArray();
         }
 
-        public static void EmitJsonForDictionary(JsonTextWriter writer, PropertyInfo property, object obj)
+        private static void EmitJsonForDictionary(JsonTextWriter writer, PropertyInfo property, object obj)
         {
             // We can definitely cast to IDictionary, since our caller checked that this is some type of Dictionary<>
             // But just in case...
@@ -167,6 +169,19 @@ namespace SerializationScheme
             }
             writer.WriteEndObject();
         }
+        #endregion
+
+        #region Deserialization and helper methods
+        // ...TBD May need a method-per-class (for specific return type); may be able to offer a helper method here...
+
+        public static object? BasicDeserializationToPOCO(string json)
+        {
+            // Deserialize direction to an anonymous sort of POCO object; useful as a precursor to other deserialization activities
+            object? obj = JsonConvert.DeserializeObject<ExpandoObject>(json);
+            return obj;
+        }
+
+        #endregion
 
         #region Previous serialization experiments
         public static void EmitJsonForListViaHardCodedManualApproach(JsonTextWriter writer, object obj)

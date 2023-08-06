@@ -6,7 +6,7 @@ namespace SerializationScheme
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            //Console.WriteLine("Hello, World!");
 
             #region Simple Archetypeal/Instance entities
             var arch1 = new SimpleArchetypalDataEntity(1, "sval_A", "a_First",  null);
@@ -20,10 +20,17 @@ namespace SerializationScheme
             string arch1JSON     = CustomSerializer.SerializeJustThisObject(arch1);
             string instance1JSON = CustomSerializer.SerializeJustThisObject(instance1);
 
-            arch1.BasicDeserializationToPOCO(SimpleArchetypalDataEntity.ExampleJsonCompact);
-            arch1.BasicDeserializationToPOCO(arch1JSON);
-            arch1.BasicDeserializationVisDeserializeObject(SimpleArchetypalDataEntity.ExampleJsonCompact);
-            arch1.BasicDeserializationVisDeserializeObject(arch1JSON);
+            // These 3: results in anonymous obj, all same results
+            // Result maybe useful as a POCO, but in the end we want an actual SimpleArchetypalDataEntity
+            var o1 = arch1.BasicDeserializationToPOCO(SimpleArchetypalDataEntity.ExampleJsonCompact);
+            var o2 = arch1.BasicDeserializationToPOCO(SimpleArchetypalDataEntity.ExampleJsonMultiLineIndented);
+            var o3 = arch1.BasicDeserializationToPOCO(arch1JSON);
+
+            // These 3: results in SimpleArchetypalDataEntity, all same results
+            // Result OK for this instance, but will not suffice for List<>, Dictionary<>, refs-as-tag purposes
+            var a1 = arch1.BasicDeserializationVisDeserializeObject(SimpleArchetypalDataEntity.ExampleJsonCompact);
+            var a2 = arch1.BasicDeserializationVisDeserializeObject(SimpleArchetypalDataEntity.ExampleJsonMultiLineIndented);
+            var a3 = arch1.BasicDeserializationVisDeserializeObject(arch1JSON);
             #endregion
 
 
@@ -60,7 +67,9 @@ namespace SerializationScheme
             firstComplex.DictionaryOfStrings.Add("c", "carrot");
 
             // We now have a complex/composite structure set up, so let's serialize:
-            CustomSerializer.SerializeJustThisObject(firstComplex);
+            string complex1Json = CustomSerializer.SerializeJustThisObject(firstComplex);
+
+            firstComplex.DeserializeFromJson(complex1Json);
             #endregion
         }
     }

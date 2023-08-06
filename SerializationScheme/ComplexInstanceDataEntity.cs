@@ -1,10 +1,18 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.VisualBasic;
+
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SerializationScheme
 {
@@ -112,6 +120,136 @@ namespace SerializationScheme
             writer.Flush();
 
             string ss = sb.ToString();
+        }
+        #endregion
+
+        #region Deserialization
+        public ComplexInstanceDataEntity? DeserializeFromJson(string json)
+        {
+            // In CustomSerializer.SerializeJustThisObject(),
+            // we have an object (whose Type is unavailable at compile time, but can be examined through Reflection),
+            //     and iterate through its' properties,
+            //         taking values for each and serializing them.
+            // 
+            // Here, the situation is reversed, as
+            // we have a specific Type (ComplexInstanceDataEntity) but no constructed object instance yet,
+            //     and can iterate through those properties,
+            //        taking values from the JSON and gathering them so aso to make a constructor call
+            // 
+
+            #region Reflection upon POCO from JSON
+            Console.WriteLine("POCO contents from JSON:");
+            var poco = CustomSerializer.BasicDeserializationToPOCO(json);
+            var pocoAsExpandoObject = poco as ExpandoObject;
+            foreach (var property in pocoAsExpandoObject )
+            {
+                if (property.Value == null)
+                {
+                    // Case 0: NULL value
+                    Console.WriteLine("- " + property.Key + ":\t (SomeType) " + "NULL");
+                    continue;
+                }
+                var valueType = property.Value.GetType();
+                if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    // Case 1: Values in a List<T>
+                    var elementType = valueType.GenericTypeArguments[0];
+                    Console.Write("- " + property.Key + ":\t" + "List<" + elementType.Name + "> ");
+                    Console.Write("[ ");
+                    foreach (var element in property.Value as IList)
+                    {
+                        Console.Write(element + ", ");
+                    }
+                    Console.WriteLine("]");
+                }
+                else if (valueType == typeof(ExpandoObject))
+                {
+                    // Case 2:
+                    // Values in a JSON object, which is parsed into an ExpandoObject
+                    // by JsonConvert.DeserializeObject<ExpandoObject>()
+                    var expando = property.Value as ExpandoObject;
+                    Console.Write("- " + property.Key + ":\t" + "ExpandoObject ");
+                    Console.Write("{ ");
+                    foreach (var aaa in expando)
+                    {
+                        Console.Write("" + aaa.Key + ": " + aaa.Value + ", ");
+                    }
+                    Console.WriteLine("}");
+                }
+                else
+                {
+                    // Case 3:
+                    // Simple value (could be primitive, or IObjForRegistrar)
+                    // Note that we cannot distinguish IObjForRegistrar at this point, since we have only the raw data from the JSON
+                    Console.WriteLine("- " + property.Key + ":\t" + "(" + valueType.Name + ") " + property.Value);
+                }
+            }
+            Console.WriteLine();
+            #endregion
+
+            #region Reflection upon the Type of this class
+            Type thisObjType = this.GetType();
+            BindingFlags   flags       = (BindingFlags.Public | BindingFlags.Instance);
+            //FieldInfo[]  fields      = thisObjType.GetFields(flags);  // Using only Properties, rather than a mix of Fields and Properties
+            PropertyInfo[] properties  = thisObjType.GetProperties(flags);
+
+            Console.WriteLine("DeserializeFromJson()");
+            Console.WriteLine("Type=" + thisObjType.Name);
+
+            for (int ii = 0; ii < properties.Length; ii++)
+            {
+                var property     = properties[ii];
+                var propertyName = property.Name;
+                var propertyType = property.PropertyType;
+
+                Console.Write("- " + propertyName + ":\t");
+
+                // Case 1: (Does a case analogous to "value is NULL" from CustomSerializer.SerializeJustThisObject exist here?)
+                // Is special handling needed if we get a NULL value for some property in the JSON ?
+                // What about mismatch between (type says not nullable, JSON contains NULL value) ?
+
+                if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    // Case 2: Some kind of List<T>
+                    Console.Write("List<" + propertyType.GenericTypeArguments[0].Name + ">");
+                    //foreach (var item in (IEnumerable)xxxxx)  // TODO: Iterate through values from JSON
+                    {
+                        Console.WriteLine("\t[ TODO list elements ]");
+                        // TODO: Get element value from JSON, add to List in constructed obj...
+                    }
+                    // TODO: Or possibly use an AddRange() method on the aforementioned list here...
+                    continue;
+                }
+                if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                {
+                    // Case 3: Some kind of Dictionary<SomeKeyType,T>
+                    Console.Write("Dictionary<" + propertyType.GenericTypeArguments[0].Name + "," + propertyType.GenericTypeArguments[1].Name + ">");
+                    //var dictionary = (IDictionary)xxxxx;
+                    //foreach (var key in dictionary.Keys)  // TODO: Iterate through keys/values from JSON
+                    {
+                        Console.WriteLine("\t{ TODO dictionary keys: values }");
+                        // TODO: Get element value from JSON, add to Dictionary in constructed obj...
+                    }
+                    continue;
+                }
+                // Case 4: A primitive type such as (int, string)
+                bool isObjForRegistrar = propertyType.GetInterfaces().Contains(typeof(IObjForRegistrar));
+                if (!isObjForRegistrar)
+                {
+                    Console.WriteLine("    (Primitive) " + propertyType.Name);
+                    // TODO: Get value from JSON, stash in constructed obj
+                    continue;
+                }
+                // Case 5: Some type implementing IObjForRegistrar
+                Console.WriteLine("    (IObjForRegistrar) " + propertyType.Name);
+                // TODO: Get value from JSON, stash in constructed obj
+                continue;
+            }
+            #endregion
+
+            ComplexInstanceDataEntity? result = null;
+            return result;
+
         }
         #endregion
     }
