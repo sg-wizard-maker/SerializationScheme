@@ -176,7 +176,7 @@ namespace SerializationScheme
 
         public static object? BasicDeserializationToPOCO(string json)
         {
-            // Deserialize direction to an anonymous sort of POCO object; useful as a precursor to other deserialization activities
+            // Deserialize directly to an anonymous sort of POCO object; useful as a precursor to other deserialization activities
             object? obj = JsonConvert.DeserializeObject<ExpandoObject>(json);
             return obj;
         }

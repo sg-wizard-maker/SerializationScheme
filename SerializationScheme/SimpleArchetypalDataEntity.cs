@@ -74,7 +74,7 @@ namespace SerializationScheme
         }
 
         #region Previous serialization experiments
-        public void TestSerializationViaJsonSerializer()
+        public string TestSerializationViaJsonSerializer()
         {
             var serializer = new JsonSerializer();
             var sb         = new StringBuilder();
@@ -83,22 +83,23 @@ namespace SerializationScheme
             serializer.Serialize(writer, this);
             writer.Flush();
 
-            string ss = sb.ToString();
+            string str = sb.ToString();
+            return str;
         }
 
-        public void DoSerializationViaHandCoded()
+        public string DoSerializationViaHandCoded()
         {
             var sw = new StringWriter();
             var writer = new JsonTextWriter(sw);
-            //writer.AutoCompleteOnClose = true;
-            //writer.Formatting = Formatting.Indented;
-            //writer.Indentation = 4;
+            //writer.AutoCompleteOnClose  = true;
+            //writer.Formatting           = Formatting.Indented;
+            //writer.Indentation          = 4;
             //writer.StringEscapeHandling = StringEscapeHandling.Default;
 
             //writer.WriteComment("This is a comment");
             writer.WriteStartObject();
 
-            #region Members
+            #region Members of this class to serialize:
             writer.WritePropertyName("Id");
             writer.WriteValue(this.Id);
 
@@ -116,6 +117,7 @@ namespace SerializationScheme
             writer.Flush();
 
             string str = sw.ToString();
+            return str;
         }
         #endregion
     }
