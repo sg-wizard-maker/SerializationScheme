@@ -10,11 +10,11 @@ namespace SerializationScheme
 {
     public class ComplexInstanceDataEntity : IObjForRegistrar
     {
-        const string ExampleJsonCompact = """
+        public const string ExampleJsonCompact = """
             {"Id":"3e63a135-c398-4236-b857-b74cd53c3933","Tag":"ci_First","ArchetypeA":"a_First","InstanceA":"i_First","ArchetypeNullableA":null,"InstanceNullableA":null,"ListArchetypesB":["a_First","a_Second"],"ListInstancesB":["i_First","i_Second","i_Third"],"DictionaryArchetypesC":{"AlphaA":"a_AAA","BetaA":"a_BBB"},"DictionaryInstancesC":{"AlphaI":"i_DDD","BetaI":"i_EEE","CappaI":"i_FFF"},"ListOfInts":[2,4,6,8,10],"ListOfStrings":["aa","bb","cc","dd"],"DictionaryOfInts":{"Ones":1111,"Twos":2222},"DictionaryOfStrings":{"a":"apple","b":"banana","c":"carrot"}}
             """;
 
-        const string ExampleJsonMultiLineIndented = """
+        public const string ExampleJsonMultiLineIndented = """
             {
             	"Id":                    "3e63a135-c398-4236-b857-b74cd53c3933",
             	"Tag":                   "ci_First",

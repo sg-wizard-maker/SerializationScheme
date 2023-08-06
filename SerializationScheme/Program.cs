@@ -17,8 +17,13 @@ namespace SerializationScheme
             var instance3 = new SimpleInstanceDataEntity(arch2, 33, "ghi", "i_Third",  null);
 
             // We now have some simple Archetypal/Instance data set up, so let's serialize:
-            CustomSerializer.SerializeJustThisObject(arch1);
-            CustomSerializer.SerializeJustThisObject(instance1);
+            string arch1JSON     = CustomSerializer.SerializeJustThisObject(arch1);
+            string instance1JSON = CustomSerializer.SerializeJustThisObject(instance1);
+
+            arch1.BasicDeserializationToPOCO(SimpleArchetypalDataEntity.ExampleJsonCompact);
+            arch1.BasicDeserializationToPOCO(arch1JSON);
+            arch1.BasicDeserializationVisDeserializeObject(SimpleArchetypalDataEntity.ExampleJsonCompact);
+            arch1.BasicDeserializationVisDeserializeObject(arch1JSON);
             #endregion
 
 

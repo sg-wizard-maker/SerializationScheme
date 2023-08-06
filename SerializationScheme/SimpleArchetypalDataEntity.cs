@@ -12,11 +12,11 @@ namespace SerializationScheme
 {
     public class SimpleArchetypalDataEntity : IObjForRegistrar
     {
-        const string ExampleJsonCompact = """
+        public const string ExampleJsonCompact = """
             {"Id":"c5d2f9bc-7822-4dc8-81ab-330b4b6c3584","Tag":"a_First","IntValue":1,"StringValue":"sval_A"}
             """;
 
-        const string ExampleJsonMultiLineIndented = """
+        public const string ExampleJsonMultiLineIndented = """
             {
             	"Id":          "c5d2f9bc-7822-4dc8-81ab-330b4b6c3584",
             	"Tag":         "a_First",
@@ -54,6 +54,24 @@ namespace SerializationScheme
             this.StringValue = sval;
         }
         #endregion
+
+        public object? BasicDeserializationToPOCO(string json)
+        {
+            //var sr     = new StringReader(json);
+            //var reader = new JsonTextReader(sr);
+
+            // Deserialize direction to an anonymous sort of POCO object -- not quite what we need
+            object? obj = JsonConvert.DeserializeObject(json);
+            return obj;
+        }
+
+        public SimpleArchetypalDataEntity? BasicDeserializationVisDeserializeObject(string json)
+        {
+            // Directly to the desired class -- this won't handle our references-as-tags scheme, however
+            // (SimpleInstanceDataEntity would fail to get useful values in reference-type members)
+            SimpleArchetypalDataEntity? arch = JsonConvert.DeserializeObject<SimpleArchetypalDataEntity>(json);
+            return arch;
+        }
 
         #region Previous serialization experiments
         public void TestSerializationViaJsonSerializer()

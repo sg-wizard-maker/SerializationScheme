@@ -17,7 +17,7 @@ namespace SerializationScheme
 {
     public class CustomSerializer
     {
-        public static void SerializeJustThisObject(object obj)
+        public static string SerializeJustThisObject(object obj)
         {
             var sw = new StringWriter();
             var writer = new JsonTextWriter(sw);
@@ -94,6 +94,7 @@ namespace SerializationScheme
             writer.Flush();
 
             string str = sw.ToString();
+            return str;
         }
 
         public static void EmitJsonForList(JsonTextWriter writer, PropertyInfo property, object obj)

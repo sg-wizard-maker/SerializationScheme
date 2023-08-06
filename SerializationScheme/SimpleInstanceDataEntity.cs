@@ -11,11 +11,11 @@ namespace SerializationScheme
 {
     public class SimpleInstanceDataEntity : IObjForRegistrar
     {
-        const string ExampleJsonCompact = """
+        public const string ExampleJsonCompact = """
             {"Id":"aedfc9f8-69b5-468f-afe0-f3844a53949e","Tag":"i_First","Archetype":"a_First","ArchetypeTwo":"a_First","InstanceIntValue":11,"InstanceStringValue":"abc"}
             """;
 
-        const string ExampleJsonMultiLineIndented = """
+        public const string ExampleJsonMultiLineIndented = """
             {
             	"Id":                  "aedfc9f8-69b5-468f-afe0-f3844a53949e",
             	"Tag":                 "i_First",
