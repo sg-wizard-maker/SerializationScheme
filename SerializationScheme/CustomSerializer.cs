@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualBasic;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using System;
@@ -10,7 +8,6 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -314,6 +311,13 @@ namespace SerializationScheme
         {
             this.ObjsByGuid = new Dictionary<Guid,   T>();
             this.ObjsByTag  = new Dictionary<string, T>();
+        }
+
+        public void ClearRegistrar()
+        {
+            // A method such as this would not be called except in unusual circumstances, such as "reset/clear the Saga"
+            this.ObjsByGuid.Clear();
+            this.ObjsByTag.Clear();
         }
 
         public T? LookupObjByGuid(Guid guid)

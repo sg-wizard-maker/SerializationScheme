@@ -4,12 +4,8 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-
-using Microsoft.VisualBasic;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -55,19 +51,21 @@ namespace SerializationScheme
         public SimpleArchetypalDataEntity? ArchetypeNullableA { get; set; }
         public SimpleInstanceDataEntity?   InstanceNullableA  { get; set; }
 
+        // Members containing List<T> of some "primitive" type
+        public List<int> ListOfInts { get; set; } = new List<int>();
+        public List<string> ListOfStrings { get; set; } = new List<string>();
+
         // Members containing List<SomeObjectReference>
         public List<SimpleArchetypalDataEntity> ListArchetypesB { get; set; } = new List<SimpleArchetypalDataEntity>();
         public List<SimpleInstanceDataEntity>   ListInstancesB  { get; set; } = new List<SimpleInstanceDataEntity>();
 
+        // Members containing Dictionary<string,T> containing some "primitive" type
+        public Dictionary<string, int> DictionaryOfInts { get; set; } = new Dictionary<string, int>();
+        public Dictionary<string, string> DictionaryOfStrings { get; set; } = new Dictionary<string, string>();
+
         // Members containing Dictionary<string, SomeObjectReference>
         public Dictionary<string, SimpleArchetypalDataEntity> DictionaryArchetypesC { get; set; } = new Dictionary<string, SimpleArchetypalDataEntity>();
         public Dictionary<string, SimpleInstanceDataEntity>   DictionaryInstancesC  { get; set; } = new Dictionary<string, SimpleInstanceDataEntity>();
-
-        public List<int>    ListOfInts    { get; set; } = new List<int>();
-        public List<string> ListOfStrings { get; set; } = new List<string>();
-
-        public Dictionary<string, int>    DictionaryOfInts    { get; set; } = new Dictionary<string, int>();
-        public Dictionary<string, string> DictionaryOfStrings { get; set; } = new Dictionary<string, string>();
         #endregion
 
         public ComplexInstanceDataEntity(SimpleArchetypalDataEntity arch, SimpleInstanceDataEntity instance, string tag, Guid? existingGuid = null)
@@ -136,6 +134,16 @@ namespace SerializationScheme
             //     and can iterate through those properties,
             //        taking values from the JSON and gathering them so aso to make a constructor call
             // 
+
+            // Notes:
+            // May want to consider the performance of various JSON-wrangling options.
+            // There is a summary table at the bottom of
+            // https://code-maze.com/csharp-deserialize-json-into-dynamic-object/
+            // which suggests that ExpandoObject is comparatively slow; 
+            // this should be weight against the convenience in handling
+            // (avoiding writing many serialization methods would be useful, ideally a single static method for any class)
+            // 
+            // TODO: Compare various different approaches...
 
             #region Reflection upon POCO from JSON
             Console.WriteLine("POCO contents from JSON:");
