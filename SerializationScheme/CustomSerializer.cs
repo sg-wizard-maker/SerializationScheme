@@ -410,40 +410,48 @@ namespace SerializationScheme
             #region Iterating through sets of same-case properties
             foreach (var p in listCase1A_SupportedPrimitiveTypes)
             {
-                // ... writer.WriteValue(value); as seen in SerializeJustThisObject()
+                // ... inverse of writer.WriteValue(value); as seen in SerializeJustThisObject()
             }
+
             foreach (var p in listCase1B_IObjForRegistrar)
             {
-                // ... writer.WriteValue(registeredObj.Tag); as seen in SerializeJustThisObject()
+                // ... tag lookup
+                // ... inverse of writer.WriteValue(registeredObj.Tag); as seen in SerializeJustThisObject()
             }
-            foreach (var p in listCase1C_OtherNonCollectionTypes)
-            {
-                // This category will be ignored for serialization
-                // (this loop will only exist as a comment, or for debug purposes)
-            }
+
+            //foreach (var p in listCase1C_OtherNonCollectionTypes)
+            //{
+            //    // This category will be ignored for serialization
+            //    // (this loop will only exist as a comment, or for debug purposes)
+            //}
+
             foreach (var p in listCase2A_ListOfSupportedType)
             {
-                // ... CustomSerializer.EmitJsonForList(writer, property, value);
+                // ... tag lookup if of IObjForRegistrar type
+                // ... inverse of CustomSerializer.EmitJsonForList(writer, property, value);
             }
+
             foreach (var p in listCase2B_DictionaryOfSupportedType)
             {
-                // ... CustomSerializer.EmitJsonForDictionary(writer, property, value);
+                // ... tag lookup if of IObjForRegistrar type
+                // ... inverse of CustomSerializer.EmitJsonForDictionary(writer, property, value);
             }
+
             //foreach (var p in listCase2C_OtherCollectionTypes)
             //{
             //    // This category will be ignored for serialization
             //    // (this loop will only exist as a comment, or for debug purposes)
             //}
-            foreach (var p in listCase2D_ListOfLIstOfInt)
-            {
-                // This category will be ignored for serialization
-                // (this loop will only exist as a comment, or for debug purposes)
-            }
-            foreach (var p in listCase2D_DictionaryOfDictionary)
-            {
-                // This category will be ignored for serialization
-                // (this loop will only exist as a comment, or for debug purposes)
-            }
+            //foreach (var p in listCase2D_ListOfLIstOfInt)
+            //{
+            //    // This category will be ignored for serialization
+            //    // (this loop will only exist as a comment, or for debug purposes)
+            //}
+            //foreach (var p in listCase2D_DictionaryOfDictionary)
+            //{
+            //    // This category will be ignored for serialization
+            //    // (this loop will only exist as a comment, or for debug purposes)
+            //}
             #endregion
 
 
