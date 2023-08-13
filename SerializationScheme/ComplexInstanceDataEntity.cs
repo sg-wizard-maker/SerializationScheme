@@ -22,30 +22,33 @@ namespace SerializationScheme
             {
             	"Id":                    "3e63a135-c398-4236-b857-b74cd53c3933",
             	"Tag":                   "ci_First",
+
             	"ArchetypeA":            "a_First",
             	"InstanceA":             "i_First",
             	"ArchetypeNullableA":    null,
             	"InstanceNullableA":     null,
+
             	"ListArchetypesB":       [ "a_First", "a_Second" ],
             	"ListInstancesB":        [ "i_First", "i_Second","i_Third" ],
-            	"DictionaryArchetypesC": { "AlphaA":"a_AAA", "BetaA":"a_BBB" },
-            	"DictionaryInstancesC":  { "AlphaI":"i_DDD", "BetaI":"i_EEE", "CappaI":"i_FFF" },
             	"ListOfInts":            [ 2, 4, 6, 8, 10 ],
             	"ListOfStrings":         [ "aa", "bb", "cc", "dd" ],
-            	"DictionaryOfInts":      { "Ones":1111, "Twos":2222 },
+
+            	"DictionaryArchetypesC": { "AlphaA":"a_AAA", "BetaA":"a_BBB" },
+            	"DictionaryInstancesC":  { "AlphaI":"i_DDD", "BetaI":"i_EEE", "CappaI":"i_FFF" },
+                "DictionaryOfInts":      { "Ones":1111, "Twos":2222 },
             	"DictionaryOfStrings":   { "a":"apple", "b":"banana", "c":"carrot" }
             }
             """;
 
         #region Members for IObjForRegistrar
         public Guid   Id  { get; set; }
-        public string Tag { get; set; }
+        public string Tag { get; set; } = "";
         #endregion
 
         #region Complex - contains other objects (singly, in lists, in dictionaries)
-        // Members containing single object reference (NOT nullable)
-        public SimpleArchetypalDataEntity ArchetypeA { get; set; }
-        public SimpleInstanceDataEntity   InstanceA  { get; set; }
+        // Members containing single object reference (NOT nullable)  -- To aid serialization (using zero-arg ctor), need members of reference type to be nullable
+        public SimpleArchetypalDataEntity? ArchetypeA { get; set; }
+        public SimpleInstanceDataEntity?   InstanceA  { get; set; }
 
         // Members containing single object reference (nullable) -- just in case this difference will require some difference
         public SimpleArchetypalDataEntity? ArchetypeNullableA { get; set; }
@@ -60,13 +63,42 @@ namespace SerializationScheme
         public List<SimpleInstanceDataEntity>   ListInstancesB  { get; set; } = new List<SimpleInstanceDataEntity>();
 
         // Members containing Dictionary<string,T> containing some "primitive" type
-        public Dictionary<string, int> DictionaryOfInts { get; set; } = new Dictionary<string, int>();
+        public Dictionary<string, int>    DictionaryOfInts    { get; set; } = new Dictionary<string, int>();
         public Dictionary<string, string> DictionaryOfStrings { get; set; } = new Dictionary<string, string>();
 
         // Members containing Dictionary<string, SomeObjectReference>
         public Dictionary<string, SimpleArchetypalDataEntity> DictionaryArchetypesC { get; set; } = new Dictionary<string, SimpleArchetypalDataEntity>();
         public Dictionary<string, SimpleInstanceDataEntity>   DictionaryInstancesC  { get; set; } = new Dictionary<string, SimpleInstanceDataEntity>();
         #endregion
+
+        #region Members which will NOT be supported for serialization:
+        // Case 1C: not primitive, not IObjForRegistrar
+        public object? Case1C_OtherReferenceType { get; set; } = null;
+
+        // Case 2C: Some collection type that is not List<> or Dictionary<,>  -- need changes in SerializeJustThisObject() for this one...
+        //public SortedSet<string> Case2C_OtherCollectionType { get; set; } = new SortedSet<string>();
+
+        // Case 2Da: List of collection type
+        public List<List<int>> Case2D_ListOfListOfInt { get; set; } = new List<List<int>>();
+
+        // Case 2Db: Dictionary of collection type
+        public Dictionary<string, Dictionary<string, int>> Case2D_DictionaryOfDictionary { get; set; } = new Dictionary<string, Dictionary<string, int>>();
+
+        // These did not produce any problems:
+        //public int IntWithGetOnly { get; } = 0;
+        //public int IntWithPrivateGet { private get; set; }
+
+        // This uncovered that calling property.GetValue() in CustomSerializer.SerializeJustThisObject()
+        // throws exception if there is not a public getter...
+        //private int _privateBackingInt = 42;
+        //public int IntWithSetOnly { set { _privateBackingInt = value; } }
+        #endregion
+
+
+        public ComplexInstanceDataEntity()
+        {
+            // Empty ctor
+        }
 
         public ComplexInstanceDataEntity(SimpleArchetypalDataEntity arch, SimpleInstanceDataEntity instance, string tag, Guid? existingGuid = null)
         {
@@ -122,7 +154,21 @@ namespace SerializationScheme
         #endregion
 
         #region Deserialization
-        public ComplexInstanceDataEntity? DeserializeFromJson(string json)
+        public static ComplexInstanceDataEntity? DeserializeSingleObjectViaReflection(string json)
+        {
+            // All of the work of this method is accomplished (via reflection, in a class-agnostic manner)
+            // via a static method from CustomSerializer, except for the final casting of the result to the specific type.
+            // 
+            // This scheme should allow many classes of diverse structure to be deserialized,
+            // only requiring each class to (optionally) write a tiny wrapper like this.
+            // 
+            Type    thisType = typeof(ComplexInstanceDataEntity);
+            object? obj      = CustomSerializer.DeserializeSingleObjectViaReflection(thisType, json);
+            var     result   = obj as ComplexInstanceDataEntity;
+            return result;
+        }
+
+        public ComplexInstanceDataEntity? ExperimentDeserializeFromJsonViaReflection(string json)
         {
             // In CustomSerializer.SerializeJustThisObject(),
             // we have an object (whose Type is unavailable at compile time, but can be examined through Reflection),
@@ -201,7 +247,7 @@ namespace SerializationScheme
             //FieldInfo[]  fields      = thisObjType.GetFields(flags);  // Using only Properties, rather than a mix of Fields and Properties
             PropertyInfo[] properties  = thisObjType.GetProperties(flags);
 
-            Console.WriteLine("DeserializeFromJson()");
+            Console.WriteLine("ComplexInstanceDataEntity.ExperimentDeserializeFromJsonViaReflection()");
             Console.WriteLine("Type=" + thisObjType.Name);
 
             for (int ii = 0; ii < properties.Length; ii++)

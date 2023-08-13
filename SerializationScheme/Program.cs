@@ -9,8 +9,8 @@ namespace SerializationScheme
         {
             //Console.WriteLine("Hello, World!");
 
-            var RegistrarSimpleArchetypalDataEntity = new ObjRegistrar<SimpleArchetypalDataEntity>();
-            var RegistrarSimpleInstanceDataEntity = new ObjRegistrar<SimpleInstanceDataEntity>();
+            var RegistrarSimpleArchetypalDataEntity  = new ObjRegistrar<SimpleArchetypalDataEntity>();
+            var RegistrarSimpleInstanceDataEntity    = new ObjRegistrar<SimpleInstanceDataEntity>();
             var RegistrarComplexInstanceDataEntities = new ObjRegistrar<ComplexInstanceDataEntity>();
 
             #region Simple Archetypeal/Instance entities
@@ -101,7 +101,9 @@ namespace SerializationScheme
             //RegistrarSimpleInstanceDataEntity.ClearRegistrar();    // same for simple instance data
             RegistrarComplexInstanceDataEntities.ClearRegistrar();   // Start with a clear slate for this type
 
-            var complex1_deserialized = firstComplex.DeserializeFromJson(complex1Json);
+            //var complex1_deserialized = firstComplex.ExperimentDeserializeFromJsonViaReflection(complex1Json);
+
+            var foo = ComplexInstanceDataEntity.DeserializeSingleObjectViaReflection(complex1Json);
             #endregion
         }
     }
