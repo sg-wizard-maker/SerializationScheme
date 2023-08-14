@@ -18,7 +18,7 @@ namespace SerializationScheme
     public class CustomSerializer
     {
         #region Infrastructure defining which primitive types are supported
-        private static Type[] TypesSupportedByNewtonsoftJsonSerialization = new Type[] 
+        private static Type[] TypesSupportedByNewtonsoftJsonSerialization = new Type[]
         {
             // These are a subset of the (fundamental or primitive) Types supported by Newtonsoft.Json serialization.
             // This list derives from internal mambers in Newtonsoft.Json.Utilities, specifically
@@ -66,10 +66,10 @@ namespace SerializationScheme
 
             writer.WriteStartObject();
 
-            Type           thisObjType = obj.GetType();
-            BindingFlags   flags       = (BindingFlags.Public | BindingFlags.Instance);
+            Type thisObjType = obj.GetType();
+            BindingFlags flags = (BindingFlags.Public | BindingFlags.Instance);
             //FieldInfo[]  fields      = type.GetFields(flags);  // Using only Properties, rather than a mix of Fields and Properties
-            PropertyInfo[] properties  = thisObjType.GetProperties(flags);
+            PropertyInfo[] properties = thisObjType.GetProperties(flags);
 
             #region Handle Public Properties (only)
             // TODO: May want a mechanism (such as attribute [JsonIgnore]) to skip some members
@@ -77,9 +77,9 @@ namespace SerializationScheme
             //       Then again, perhaps the simplest convention is "public properties only"...
             for (int ii = 0; ii < properties.Length; ii++)
             {
-                var property     = properties[ii];
+                var property = properties[ii];
                 var propertyName = property.Name;
-                var value        = property.GetValue(obj);  // BUG: Need to ensure that property has public getter AND setter...set-only crashes here
+                var value = property.GetValue(obj);  // BUG: Need to ensure that property has public getter AND setter...set-only crashes here
 
                 writer.WritePropertyName(propertyName);
                 // Case 1: Value is NULL
@@ -214,6 +214,10 @@ namespace SerializationScheme
         #region Deserialization and helper methods
         public static object? BasicDeserializationToPOCO(string json)
         {
+            // TODO:
+            // The use of ExpandoObject may be inefficient and slow.
+            // Consider using some other means, if the useful things can be done otherwise...
+            // 
             // Deserialize directly to an anonymous sort of POCO object; useful as a precursor to other deserialization activities
             object? obj = JsonConvert.DeserializeObject<ExpandoObject>(json);
             return obj;
@@ -232,7 +236,7 @@ namespace SerializationScheme
                 // or for which this case could be avoided or handled better?
                 throw new ArgumentException("Got Type without zero-arg constructor");
                 //return null;
-            }    
+            }
             object? obj = ctor.Invoke(ctorParameters);
 
             // ...do reflection upon 'type' and upon the POCO deserialized from 'json', to fill out 'obj':
@@ -258,7 +262,7 @@ namespace SerializationScheme
             // 
             // We iterate over the list of public properties, ...
 
-            BindingFlags flags      = (BindingFlags.Public | BindingFlags.Instance);
+            BindingFlags flags = (BindingFlags.Public | BindingFlags.Instance);
             //FieldInfo[]  fields     = type.GetFields(flags);  // Using only Properties, rather than a mix of Fields and Properties
             PropertyInfo[] properties = type.GetProperties(flags);
 
@@ -321,7 +325,7 @@ namespace SerializationScheme
             var listCase2A_ListOfSupportedType =
             (
                 from p in propertiesOfCollectionTypes
-                where 
+                where
                     p.PropertyType.IsGenericType &&
                     (
                         p.PropertyType.GetGenericTypeDefinition() == typeof(List<>) &&
@@ -329,7 +333,7 @@ namespace SerializationScheme
                     ) &&
                     (
                         p.PropertyType.GenericTypeArguments[0].GetInterfaces().Contains(typeof(IObjForRegistrar)) ||
-                        CustomSerializer.IsSupportedTypeForSerialization( p.PropertyType.GenericTypeArguments[0] )
+                        CustomSerializer.IsSupportedTypeForSerialization(p.PropertyType.GenericTypeArguments[0])
                     )
                 select p
             );
@@ -346,8 +350,8 @@ namespace SerializationScheme
                     (
                         p.PropertyType.GenericTypeArguments[0] == typeof(string) &&
                         (
-                            p.PropertyType.GenericTypeArguments[1].GetInterfaces().Contains(typeof(IObjForRegistrar))  ||
-                            CustomSerializer.IsSupportedTypeForSerialization( p.PropertyType.GenericTypeArguments[1] )
+                            p.PropertyType.GenericTypeArguments[1].GetInterfaces().Contains(typeof(IObjForRegistrar)) ||
+                            CustomSerializer.IsSupportedTypeForSerialization(p.PropertyType.GenericTypeArguments[1])
                         )
                     )
                 select p
@@ -387,7 +391,7 @@ namespace SerializationScheme
                 select p
             );
 
-            var listCase2D_DictionaryOfDictionary = 
+            var listCase2D_DictionaryOfDictionary =
             (
                 from p in propertiesOfCollectionTypes
                 where
@@ -462,6 +466,136 @@ namespace SerializationScheme
             // a class-specific wrapper, which will cast the result as SomeParticularType?
             return obj;
         }
+
+        // Algorithm for Deserialization and Tag Lookup:
+        // 
+        // Consider an object graph, where objects refer to one another via references:
+        //     class A {
+        //         public B RefToB {get;set;}
+        //     }
+        //     class B {
+        //     }
+        // Data for these might be serialized as distinct files
+        // (rather than a single blob of JSON for the entire object graph)
+        // according to some scheme, such as
+        //     (one file per object, or
+        //      one file per class, each containing N same-class objects)
+        // as in:
+        //     A.json
+        //     B.json
+        // If an instance of (A) is designated as the "root" of an object graph,
+        // the resulting graph contains no "cycles", and deserialization
+        // (and restoring references from one object to another) is very straightforward,
+        // as it suffices to deserialize the classes in reverse order of their dependencies:
+        //     deserialize all (B)s
+        //     deserialize all (A)s
+        // 
+        // A more typical situation is of course more complex, as such object graphs
+        // are likely to contain references which form cycles.
+        // For example:
+        //     "Saga" contains "Covenants" and "Characters" and ...
+        //     "Covenants" contain "Characters" and "Laboratories" and "Libraries" and ...
+        //         also refer to the Saga they are contained in
+        //     "Characters" contain "Virtues" and "Flaws" and "Abilities" and "Spells" and other "Characters" and ...
+        //        also refer to the Saga, and the Covenant, they are contained in / associated with
+        // 
+        // Let us therefore consider a simple, abstracted example:
+        //     class A {
+        //         public B RefToB {get;set;}
+        //     }
+        //     class B {
+        //         public A RefToA {get;set;}
+        //     }
+        // A scenario of active-at-runtime objects using these classes
+        // will form an object graph containing a cycle (A --> B -->A).
+        // Upon deserialization, the scheme which worked for the simple "no cycles" case will not suffice,
+        // since deserializing any of these classes "first" runs into the problem of handling "forward references":
+        //     deserialize all (B)s...what to do with RefToA when constructing the B object?
+        //     deserialize all (A)s...what to do with RefToB when constructing the A object?
+        // 
+        // This is of course not insoluble, being a well-known circumstance admitting various traditional resolutions.
+        // The approach we take here is "partial registration".
+        // Consider that when deserializing such an object graph, 
+        // that there are two cases:
+        //     A - Given (some Type T, and JSON for an object of type T -- which may contain references to other types),
+        //         construct and return the corresponding object, containing valid object references.
+        //         (It is the job of case B to produce a valid reference for any references to other objects.)
+        //     B - Given (some Type T, and the string value of the "Tag" for the object thus references)
+        //         return a valid object reference.
+        //         (It is the job of some other code, to eventually deserialize the JSON text
+        //         for that object, and fill out the rest of its' data.)
+        // 
+        // With that preamble, here is the algorithm for deserialization, accomplishing Case A and Case B:
+        // 
+        // Case A:
+        // We define a method
+        //     public object? DeserializeFromJson(Type type, string json) { ... }
+        // 
+        // 1 - Deserialize the JSON to produce a POCO, using a method such as BasicDeserializationToPOCO()
+        // 2 - Do Tag Lookup on the "Tag" in the POCO.
+        //     2A - Tag Lookup as an ordinary "complete" object;
+        //          if found then: What is intended here?  Replace existing object with object from the JSON ?  Throw an exception?
+        //     2B - Tag Lookup as a "Partial" object;
+        //          the resulting object reference will be used
+        //     2C - Tag was not found as Complete or as Partial;
+        //          thus a new object will be needed, so call NewObjectFromTypeAndTag(type, tagFromPOCO)
+        //     In either of (2B, 2C) the resulting object reference
+        //     will be filled out in the remainder of this method.
+        // 3 - Fill out properties in the new-or-partial object from step 2.
+        //     3A - Property is of supported primitive type: assign the value
+        //     3B - Property is of type IObjForRegistrar: Do Tag Lookup to get an object reference,
+        //          and call NewObjectFromTypeAndTag() if needed.
+        //          It is the job of (this method, via a different call made at a later moment in time) to finish filling that object.
+        //     3C - Property is of type List<T>, where T is (supported primitive, or IObjForRegistrar)
+        //          Iterate through list elements from the JSON, and
+        //          for each element, handle as case 3A or 3B,
+        //          adding values to the List in the object being filled out.
+        //     3D - Property is of type Dictionary<string,T>, where T is (supported primitive, or IObjForRegistrar)
+        //          Iterate through key-value pairs from the JSON, and
+        //          for each such pair, handle as case 3A or 3B,
+        //          adding key and value to the Dictionary in the object being filled out.
+        // 4 - When all properties from the JSON have been gone over
+        //     (some may be skipped, due to unsupported type,
+        //     or possibly an Attribute indicating to ship it)
+        //     then the object is complete, and can be returned.
+        //     It is the job of (this method, via a different call made at a later moment in time)
+        //     to arrange that all of the objects registered as "Partial" end up completed
+        //     (all properties gone over, and re-registered as "complete").
+        // 
+        //     The code which calls this method is responsible for some arrangement
+        //     (such as iterating over all files in the tree-of-dirs-and-files,
+        //     possibly doing so in batches of files associated with one Type at a time)
+        //     to ensure that all of the objects to deserialize, end up deserialized and registered.
+        // 
+        // Case B:
+        // We define a method
+        //     public object? NewObjectFromTypeAndTag(Type type, string Tag) { ... }
+        // 
+        // 1 - Get the zero-argument constructor for 'type', which is a type implementing IObjForRegistrar
+        // 2 - Call that constructor, resulting in an object reference (for an "empty" object)
+        // 3 - Set the "Tag"
+        // 4 - Register the object in the appropriate ObjRegistrar<T> as a "Partial" object
+        // 5 - Return the object reference
+        // 
+        // At some future moment, it is the job of (other code) to accomplish deserialization of
+        // (whatever files) so as to ensure that all "Partial" objects can be
+        //     - Filled out with the rest of their data
+        //     - Re-registered as ordinary "Complete" objects
+        // If that process completes, and there are more than zero "Partial" objects remaining
+        // (of whatever Type or Types), then this is an exceptional (and thus Exception-raising)
+        // circumstance.  The system could produce an error and discard the incompletely-loaded data,
+        // or possibly some manner of error recovery could be attempted.
+        // 
+        // Upon such error recover, consider:
+        //     Suppose there are 30,000 objects in the object graph described
+        //     in a "save" (being a tree of dirs-and-files),
+        //     and 29,999 of them load correctly, but one remains as a "Partial" object.
+        //     This might occur because "FileForTheMissingObject.json" was missing, or malformed.
+        //     Though ambitious, one might aspire to have a system which could allow
+        //     some means of remedy for this, whether via
+        //         (diagnose the problem, and allow the user to manually correct specific files / data contents) or
+        //         (doing some "fix-up" on the live data).
+        //     This is likely not trivial, so implementation (and designing a working approach) is left as an exercise for the reader...
         #endregion
 
         #region Previous serialization experiments
