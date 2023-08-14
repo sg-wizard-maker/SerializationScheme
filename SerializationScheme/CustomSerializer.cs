@@ -520,7 +520,7 @@ namespace SerializationScheme
         //     A - Given (some Type T, and JSON for an object of type T -- which may contain references to other types),
         //         construct and return the corresponding object, containing valid object references.
         //         (It is the job of case B to produce a valid reference for any references to other objects.)
-        //     B - Given (some Type T, and the string value of the "Tag" for the object thus references)
+        //     B - Given (some Type T, and the string value of the "Tag" for the object thus referenced)
         //         return a valid object reference.
         //         (It is the job of some other code, to eventually deserialize the JSON text
         //         for that object, and fill out the rest of its' data.)
