@@ -27,7 +27,7 @@ namespace SerializationScheme
 
         #region Members for IObjForRegistrar
         public Guid   Id  { get; set; }
-        public string Tag { get; set; }
+        public string Tag { get; set; } = "";
         #endregion
 
         #region Other members
@@ -52,6 +52,11 @@ namespace SerializationScheme
 
             this.IntValue    = ival;
             this.StringValue = sval;
+        }
+
+        public SimpleArchetypalDataEntity()
+        {
+            // Empty ctor
         }
         #endregion
 

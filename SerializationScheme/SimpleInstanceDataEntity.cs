@@ -28,18 +28,19 @@ namespace SerializationScheme
 
         #region Members for IObjForRegistrar
         public Guid   Id  { get; set; }
-        public string Tag { get; set; }
+        public string Tag { get; set; } = "";
         #endregion
 
         [JsonProperty(ItemIsReference = true)]
-        public SimpleArchetypalDataEntity Archetype { get; private set; }
+        public SimpleArchetypalDataEntity? Archetype { get; private set; }
 
         [JsonProperty(ItemIsReference = true)]
-        public SimpleArchetypalDataEntity ArchetypeTwo { get; private set; }
+        public SimpleArchetypalDataEntity? ArchetypeTwo { get; private set; }
 
         public int     InstanceIntValue     { get; set; }
         public string  InstanceStringValue  { get; set; } = "";
 
+        #region Constructors
         public SimpleInstanceDataEntity(SimpleArchetypalDataEntity arch, int ival, string sval, string tag, Guid? existingGuid = null)
         {
             #region IObjForRegistrar
@@ -52,6 +53,12 @@ namespace SerializationScheme
             this.InstanceIntValue    = ival;
             this.InstanceStringValue = sval;
         }
+
+        public SimpleInstanceDataEntity()
+        {
+            // Empty ctor
+        }
+        #endregion
 
         #region Previous serialization experiments
         public void TestSerializationViaJsonSerializer()
