@@ -596,6 +596,30 @@ namespace SerializationScheme
         //         (diagnose the problem, and allow the user to manually correct specific files / data contents) or
         //         (doing some "fix-up" on the live data).
         //     This is likely not trivial, so implementation (and designing a working approach) is left as an exercise for the reader...
+        //
+        //
+        // Note:
+        // Consider the case where the object graph includes objects using inheritance, such as
+        //     class SomeBase { ... }
+        //     class A : SomeBase { ... }
+        //     class B : SomeBase { ... }
+        // 
+        //     class SomeContainingObject {
+        //         public SomeBase SomeMember { get; set; }
+        //     }
+        // 
+        // and an instance of SomeContainingObject is being deserialized.
+        // The data for SomeMember could be any of (SomeBase) or (A or B), 
+        // and in the latter case the JSON is likely to contain fields:values for members specific to (A or B).
+        // 
+        // As such, it would be necessary to examine the data
+        // in order to determine what Type to pass
+        // to DeserializeFromJson() / NewObjectFromTypeAndTag().
+        // 
+        // TODO:
+        // Need to look through the NewtonSoft JSON documentation, as
+        // it is likely that there is some standard means of handling such a case...
+        // 
         #endregion
 
         #region Previous serialization experiments
