@@ -620,6 +620,19 @@ namespace SerializationScheme
         // Need to look through the NewtonSoft JSON documentation, as
         // it is likely that there is some standard means of handling such a case...
         // 
+        // https://stackoverflow.com/questions/8513042/json-net-serialize-deserialize-derived-types
+        //     Using TypeNameHandling = TypeNameHandling.All or TypeNameHandling.Auto
+        //     However, this has security implications:
+        //     https://www.alphabot.com/security/blog/2017/net/How-to-configure-Json.NET-to-create-a-vulnerable-web-API.html
+        // 
+        // This can be avoided by a "whitelist" approach,
+        // such as the below, which uses an ISerializationBinder:
+        //     https://medium.com/@harinim02/serialize-and-deserialize-inherited-types-in-c-using-newtonsoft-json-8d204c4ccb60
+        // 
+        // Or, via similar approaches implemented manually, as seen in:
+        //     https://makolyte.com/csharp-deserialize-json-to-a-derived-type/
+        // 
+        // Bleh.  Need to pick an approach.
         #endregion
 
         #region Previous serialization experiments
